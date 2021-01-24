@@ -1,39 +1,43 @@
-const colors = [
-  '#FFFFFF',
-  '#2196F3',
-  '#4CAF50',
-  '#FF9800',
-  '#009688',
-  '#795548',
-];
+import fetchCountries from './js/fetch-countries';
+import templateCountriesList from './templates/countries-list.hbs';
+import templateCountryInfo from './templates/country-info.hbs';
+import { error } from '@pnotify/core/dist/PNotify.js';
+import '@pnotify/core/dist/BrightTheme.css';
+import './styles.css';
 
-const randomIntegerFromInterval = (min, max) => {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-};
-
+const debounce = require('lodash.debounce');
 const refs = {
-  stopBtn: document.querySelector('[data-action="stop"]'),
-  startBtn: document.querySelector('[data-action="start"]'),
-  body: document.querySelector('body'),
+  searchInput: document.querySelector('#input'),
+  countryInfoBox: document.querySelector('#country__info'),
+  searchList: document.querySelector('#country__list'),
 };
-let colorSwt;
-let isActive = false;
 
-function startSwitch() {
-  if (!isActive) {
-    isActive = true;
-    colorSwt = setInterval(() => {
-      refs.body.style.backgroundColor = `${
-        colors[randomIntegerFromInterval(0, 5)]
-      }`;
-    }, 1000);
-  }
+refs.searchInput.addEventListener('input', debounce(searchQuery, 500));
+
+function searchQuery(e) {
+  const value = e.target.value;
+  fetchCountries(value).then(data => {
+    if (data.length === 1) {
+      removeInfo();
+      refs.countryInfoBox.insertAdjacentHTML(
+        'afterbegin',
+        templateCountryInfo(data[0]),
+      );
+    } else if (data.length > 1 && data.length < 11) {
+      removeInfo();
+      refs.searchList.insertAdjacentHTML(
+        'afterbegin',
+        templateCountriesList(data),
+      );
+    } else if (data.length > 11) {
+      error({
+        text: 'Too many matches found, enter more specific query',
+        delay: 1000,
+      });
+    }
+  });
 }
-
-function stopSwitch() {
-  clearInterval(colorSwt);
-  isActive = false;
+function removeInfo() {
+  refs.countryInfoBox.innerHTML = '';
+  refs.searchList.innerHTML = '';
 }
-
-refs.startBtn.addEventListener('click', startSwitch);
-refs.stopBtn.addEventListener('click', stopSwitch);
