@@ -1,4 +1,4 @@
-import fetchCountries from './js/fetch-countries';
+import fetchCountries from './js/fetchCountries';
 import templateCountriesList from './templates/countries-list.hbs';
 import templateCountryInfo from './templates/country-info.hbs';
 import { error } from '@pnotify/core/dist/PNotify.js';
